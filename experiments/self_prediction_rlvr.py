@@ -413,6 +413,23 @@ class SelfPredictionRLVREnv:
     def get_dataset(self) -> list[dict[str, Any]]:
         return list(self._dataset)
 
+    def build_messages(
+        self,
+        prompt: str,
+        *,
+        history: Messages | None = None,
+    ) -> Messages:
+        """Build a chat conversation for the underlying model."""
+
+        conversation: Messages = []
+        if self.system_prompt:
+            conversation.append({"role": "system", "content": self.system_prompt})
+        conversation.extend(self.few_shot)
+        if history:
+            conversation.extend(history)
+        conversation.append({"role": "user", "content": prompt})
+        return conversation
+
     async def init_state(
         self,
         *,
@@ -576,7 +593,6 @@ class SelfPredictionVerifier:
             "confidence_interval": [round(lower, 3), round(upper, 3)],
         }
 
-
 class SelfPredictionBatchVerifier:
     """Provides dataset-level metrics backed by the self-prediction verifier."""
 
@@ -608,9 +624,8 @@ async def _run_cli(args: argparse.Namespace) -> None:
     results, scorecard = await batch_verifier.evaluate(predictions)
     avg_reward = scorecard.reward if results else 0.0
     metric_names = sorted(results[0].metrics.keys()) if results else []
-    print(
-        f"Strategy: {args.strategy} | examples: {len(results)} | avg reward: {avg_reward:.3f}"
-    )
+    mode_label = f"provider: stub | strategy: {args.strategy}"
+    print(f"{mode_label} | examples: {len(results)} | avg reward: {avg_reward:.3f}")
     header = ["example_id", "reward"] + metric_names + ["confidence", "answer"]
     print("\t".join(header))
     for result in results:

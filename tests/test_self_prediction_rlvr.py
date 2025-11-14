@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import pytest
+from typing import Any, Mapping
 
 from experiments.self_prediction_rlvr import (
     SelfPredictionBatchVerifier,
@@ -99,3 +100,14 @@ async def test_batch_verifier_produces_rlvf_summary(env):
         assert objective.name in scorecard.objectives
         value = scorecard.objectives[objective.name]
         assert 0.0 <= value <= 1.0
+
+
+def test_env_build_messages_includes_system_and_history(env):
+    dataset = env.get_dataset()
+    example = dataset[0]
+    history = [{"role": "assistant", "content": "intermediate"}]
+    messages = env.build_messages(example["prompt"], history=history)
+    assert messages[0]["role"] == "system"
+    assert messages[-2]["role"] == "assistant"
+    assert messages[-1]["content"] == example["prompt"]
+
