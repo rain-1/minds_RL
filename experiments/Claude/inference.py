@@ -3,6 +3,7 @@ import json
 import re
 import time
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 import anthropic
 
@@ -12,6 +13,7 @@ THINKING_BUDGET_TOKENS = 20000
 
 NUM_TRIALS_CONTROL = 2
 NUM_TRIALS_EXPERIMENTAL = 2
+MAX_PARALLEL_TRIALS = 10
 
 OUTPUT_DIR = "sonnet_cot_experiment"
 CONTEXT_PATH = "context_prompt.txt"
@@ -112,13 +114,22 @@ def join_text_blocks(content_blocks):
 
 
 def extract_last_uppercase_50_sequence(text):
-    print("[extract_last_uppercase_50_sequence] Searching for 50-char uppercase sequences", flush=True)
+    print(
+        "[extract_last_uppercase_50_sequence] Searching for 50-char uppercase sequences",
+        flush=True,
+    )
     if not text:
-        print("[extract_last_uppercase_50_sequence] Empty text; no sequences", flush=True)
+        print(
+            "[extract_last_uppercase_50_sequence] Empty text; no sequences",
+            flush=True,
+        )
         return None
     matches = UPPERCASE_50_PATTERN.findall(text)
     if not matches:
-        print("[extract_last_uppercase_50_sequence] No 50-char uppercase sequences found", flush=True)
+        print(
+            "[extract_last_uppercase_50_sequence] No 50-char uppercase sequences found",
+            flush=True,
+        )
         return None
     last_seq = matches[-1]
     print(
@@ -129,19 +140,23 @@ def extract_last_uppercase_50_sequence(text):
 
 
 def parse_output_string_and_metric(visible_text):
-    print("[parse_output_string_and_metric] Parsing visible text for String/Metric", flush=True)
+    print(
+        "[parse_output_string_and_metric] Parsing visible text for String/Metric",
+        flush=True,
+    )
     guessed_string = None
     numeric_metric = None
 
     if not visible_text:
-        print("[parse_output_string_and_metric] No visible text provided", flush=True)
+        print(
+            "[parse_output_string_and_metric] No visible text provided",
+            flush=True,
+        )
         return None, None
 
-    # First split on real newlines, then also split on literal "\n"
     raw_lines = visible_text.splitlines()
     lines = []
     for raw in raw_lines:
-        # Handle literal backslash-n sequences as additional line breaks
         for segment in raw.split("\\n"):
             seg = segment.strip()
             if seg:
@@ -156,7 +171,6 @@ def parse_output_string_and_metric(visible_text):
         stripped = line.strip()
 
         if stripped.startswith("String"):
-            # Prefer the 50-char all-uppercase sequence if present
             seq_match = UPPERCASE_50_PATTERN.search(stripped)
             if seq_match:
                 guessed_string = seq_match.group(0)
@@ -165,7 +179,7 @@ def parse_output_string_and_metric(visible_text):
                 if len(parts) == 2:
                     guessed_string = parts[1].strip()
                 else:
-                    guessed_string = stripped[len("String"):].strip(" \t:-")
+                    guessed_string = stripped[len("String") :].strip(" \t:-")
             print(
                 "[parse_output_string_and_metric] Parsed String line",
                 flush=True,
@@ -176,9 +190,8 @@ def parse_output_string_and_metric(visible_text):
             if len(parts) == 2:
                 metric_raw = parts[1].strip()
             else:
-                # Handle "Metric 0.87" / "Rating 1" style
                 keyword = "Metric" if stripped.startswith("Metric") else "Rating"
-                metric_raw = stripped[len(keyword):].strip(" \t:-")
+                metric_raw = stripped[len(keyword) :].strip(" \t:-")
 
             number_match = re.search(r"[-+]?\d+(\.\d+)?", metric_raw)
             if number_match:
@@ -191,7 +204,9 @@ def parse_output_string_and_metric(visible_text):
             )
 
     print(
-        f"[parse_output_string_and_metric] Result -> guessed_string length={len(guessed_string) if guessed_string else 0}, metric={numeric_metric}",
+        "[parse_output_string_and_metric] Result -> guessed_string length={}, metric={}".format(
+            len(guessed_string) if guessed_string else 0, numeric_metric
+        ),
         flush=True,
     )
     return guessed_string, numeric_metric
@@ -228,7 +243,10 @@ def compute_alignment(secret_sequence, guess_sequence):
 
 
 def ensure_output_dir():
-    print(f"[ensure_output_dir] Ensuring output directory exists at {OUTPUT_DIR}", flush=True)
+    print(
+        f"[ensure_output_dir] Ensuring output directory exists at {OUTPUT_DIR}",
+        flush=True,
+    )
     if not os.path.isdir(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         print(f"[ensure_output_dir] Created directory {OUTPUT_DIR}", flush=True)
@@ -329,7 +347,7 @@ def run_single_trial(trial_index, condition, context_text):
         max_tokens=MAX_TOKENS,
         thinking={"type": "enabled", "budget_tokens": THINKING_BUDGET_TOKENS},
         messages=conversation,
-        timeout=600,  # override non-streaming timeout to avoid ValueError
+        timeout=600,
     )
     print(
         f"[run_single_trial] Phase 1 response received (id={response1.id}, model={response1.model})",
@@ -386,7 +404,7 @@ def run_single_trial(trial_index, condition, context_text):
         max_tokens=MAX_TOKENS,
         thinking={"type": "enabled", "budget_tokens": THINKING_BUDGET_TOKENS},
         messages=conversation,
-        timeout=600,  # override non-streaming timeout here as well
+        timeout=600,
     )
     print(
         f"[run_single_trial] Phase 2 response received (id={response2.id}, model={response2.model})",
@@ -444,9 +462,7 @@ def run_single_trial(trial_index, condition, context_text):
     }
     print("[run_single_trial] Trial record assembled", flush=True)
 
-    append_trial_jsonl(trial_record)
-    append_summary_row(trial_record)
-    print("[run_single_trial] Trial persistence complete", flush=True)
+    return trial_record
 
 
 def main():
@@ -459,25 +475,56 @@ def main():
         flush=True,
     )
 
+    trial_configs = []
     trial_index = 0
     for condition, num_trials in [
         ("control", NUM_TRIALS_CONTROL),
         ("experimental", NUM_TRIALS_EXPERIMENTAL),
     ]:
-        print(f"[main] Entering condition loop: {condition}", flush=True)
+        print(f"[main] Entering condition setup loop: {condition}", flush=True)
         for _ in range(num_trials):
             print(
-                f"[main] Running trial {trial_index} condition={condition}",
+                f"[main] Scheduling trial {trial_index} condition={condition}",
                 flush=True,
             )
-            run_single_trial(trial_index, condition, context_text)
+            trial_configs.append((trial_index, condition))
             trial_index += 1
-            time.sleep(1.0)
+
+    print(
+        f"[main] Total trials scheduled: {len(trial_configs)}; running with up to {MAX_PARALLEL_TRIALS} parallel trials",
+        flush=True,
+    )
+
+    trial_records = []
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL_TRIALS) as executor:
+        futures = []
+        for t_index, cond in trial_configs:
+            futures.append(
+                executor.submit(run_single_trial, t_index, cond, context_text)
+            )
+        for future in futures:
+            record = future.result()
+            trial_records.append(record)
             print(
-                f"[main] Completed trial {trial_index - 1}; sleeping before next trial",
+                f"[main] Collected trial {record.get('trial_index')} condition={record.get('condition')}",
                 flush=True,
             )
-    print("[main] All trials completed", flush=True)
+
+    trial_records.sort(key=lambda r: r.get("trial_index", 0))
+    print(
+        f"[main] Writing {len(trial_records)} trial records to JSONL and TSV in trial_index order",
+        flush=True,
+    )
+
+    for record in trial_records:
+        append_trial_jsonl(record)
+        append_summary_row(record)
+        print(
+            f"[main] Persisted trial {record.get('trial_index')} condition={record.get('condition')}",
+            flush=True,
+        )
+
+    print("[main] All trials completed and persisted", flush=True)
 
 
 if __name__ == "__main__":
