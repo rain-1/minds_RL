@@ -137,37 +137,56 @@ def parse_output_string_and_metric(visible_text):
         print("[parse_output_string_and_metric] No visible text provided", flush=True)
         return None, None
 
-    lines = visible_text.splitlines()
+    # First split on real newlines, then also split on literal "\n"
+    raw_lines = visible_text.splitlines()
+    lines = []
+    for raw in raw_lines:
+        # Handle literal backslash-n sequences as additional line breaks
+        for segment in raw.split("\\n"):
+            seg = segment.strip()
+            if seg:
+                lines.append(seg)
+
     print(
-        f"[parse_output_string_and_metric] Visible text has {len(lines)} lines",
+        f"[parse_output_string_and_metric] Visible text has {len(lines)} logical lines after expanding \\n",
         flush=True,
     )
 
     for line in lines:
         stripped = line.strip()
+
         if stripped.startswith("String"):
-            parts = stripped.split(":", 1)
-            if len(parts) == 2:
-                guessed_string = parts[1].strip()
+            # Prefer the 50-char all-uppercase sequence if present
+            seq_match = UPPERCASE_50_PATTERN.search(stripped)
+            if seq_match:
+                guessed_string = seq_match.group(0)
             else:
-                guessed_string = stripped[len("String"):].strip(" \t:-")
+                parts = stripped.split(":", 1)
+                if len(parts) == 2:
+                    guessed_string = parts[1].strip()
+                else:
+                    guessed_string = stripped[len("String"):].strip(" \t:-")
             print(
                 "[parse_output_string_and_metric] Parsed String line",
                 flush=True,
             )
-        elif stripped.startswith("Metric"):
+
+        elif stripped.startswith("Metric") or stripped.startswith("Rating"):
             parts = stripped.split(":", 1)
             if len(parts) == 2:
                 metric_raw = parts[1].strip()
             else:
-                metric_raw = stripped[len("Metric"):].strip(" \t:-")
+                # Handle "Metric 0.87" / "Rating 1" style
+                keyword = "Metric" if stripped.startswith("Metric") else "Rating"
+                metric_raw = stripped[len(keyword):].strip(" \t:-")
+
             number_match = re.search(r"[-+]?\d+(\.\d+)?", metric_raw)
             if number_match:
                 numeric_metric = number_match.group(0)
             else:
                 numeric_metric = metric_raw
             print(
-                "[parse_output_string_and_metric] Parsed Metric line",
+                "[parse_output_string_and_metric] Parsed Metric/Rating line",
                 flush=True,
             )
 
