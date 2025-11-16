@@ -15,9 +15,9 @@ THINKING_BUDGET_TOKENS = 20000
 # NUM_TRIALS_CONTROL = 100
 # NUM_TRIALS_EXPERIMENTAL = 100
 # MAX_PARALLEL_TRIALS = 10
-NUM_TRIALS_CONTROL = 2
-NUM_TRIALS_EXPERIMENTAL = 2
-MAX_PARALLEL_TRIALS = 4
+NUM_TRIALS_CONTROL = 10
+NUM_TRIALS_EXPERIMENTAL = 10
+MAX_PARALLEL_TRIALS = 1
 
 #OUTPUT_DIR = "sonnet_cot_experiment"
 OUTPUT_DIR = "haiku_cot_experiment"
@@ -177,18 +177,21 @@ def parse_output_string_and_metric(visible_text):
     for line in lines:
         stripped = line.strip()
 
-        if stripped.startswith("String"):
+        # Accept lines that begin with "String", "Guess", or "Guessed" (case-insensitive)
+        if re.match(r'^(?:String|Guess|Guessed)\b', stripped, re.IGNORECASE):
             seq_match = UPPERCASE_50_PATTERN.search(stripped)
             if seq_match:
                 guessed_string = seq_match.group(0)
             else:
+                # Prefer splitting on a colon if present
                 parts = stripped.split(":", 1)
-                if len(parts) == 2:
+                if len(parts) == 2 and parts[1].strip():
                     guessed_string = parts[1].strip()
                 else:
-                    guessed_string = stripped[len("String") :].strip(" \t:-")
+                    # Remove the leading keyword and any separators then strip
+                    guessed_string = re.sub(r'^(?:String|Guess|Guessed)\b[:\s\-]*', '', stripped, flags=re.IGNORECASE).strip()
             print(
-                "[parse_output_string_and_metric] Parsed String line",
+                "[parse_output_string_and_metric] Parsed String/Guess line",
                 flush=True,
             )
 
