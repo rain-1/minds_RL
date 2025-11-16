@@ -7,21 +7,28 @@ from concurrent.futures import ThreadPoolExecutor
 
 import anthropic
 
-MODEL_NAME = "claude-sonnet-4-5"
+#MODEL_NAME = "claude-sonnet-4-5"
+MODEL_NAME = "claude-haiku-4-5"
 MAX_TOKENS = 40000
 THINKING_BUDGET_TOKENS = 20000
 
-NUM_TRIALS_CONTROL = 100
-NUM_TRIALS_EXPERIMENTAL = 100
-MAX_PARALLEL_TRIALS = 10
+# NUM_TRIALS_CONTROL = 100
+# NUM_TRIALS_EXPERIMENTAL = 100
+# MAX_PARALLEL_TRIALS = 10
+NUM_TRIALS_CONTROL = 2
+NUM_TRIALS_EXPERIMENTAL = 2
+MAX_PARALLEL_TRIALS = 4
 
-OUTPUT_DIR = "sonnet_cot_experiment"
+#OUTPUT_DIR = "sonnet_cot_experiment"
+OUTPUT_DIR = "haiku_cot_experiment"
 CONTEXT_PATH = "context_prompt.txt"
 SUMMARY_PATH = os.path.join(OUTPUT_DIR, "summary.tsv")
 TRIALS_JSONL_PATH = os.path.join(OUTPUT_DIR, "trials.jsonl")
 
-GENERAL_PROMPT1_PATH = "general_prompt1.txt"
-GENERAL_PROMPT2_PATH = "general_prompt2.txt"
+#GENERAL_PROMPT1_PATH = "general_prompt1.txt"
+GENERAL_PROMPT1_PATH = "general_prompt1_haiku.txt"
+#GENERAL_PROMPT2_PATH = "general_prompt2.txt"
+GENERAL_PROMPT2_PATH = "general_prompt2_encourage_haiku.txt"
 
 UPPERCASE_50_PATTERN = re.compile(r"[A-Z]{50}")
 
@@ -365,7 +372,8 @@ def run_single_trial(trial_index, condition, context_text):
         flush=True,
     )
 
-    phase1_exact_i_understand = phase1_visible_text.strip() == "I understand."
+    phase1_exact_i_understand = (phase1_visible_text.strip() == "I understand.") or (phase1_visible_text.strip() == "I understand. I have chosen my string.")
+
     print(
         f"[run_single_trial] Phase 1 exact 'I understand.': {phase1_exact_i_understand}",
         flush=True,
