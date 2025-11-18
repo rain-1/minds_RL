@@ -10,7 +10,64 @@ Usage:
 import sys
 import os
 import csv
+import re
 from collections import defaultdict
+
+
+def safe_float(value, default=None):
+    """Safely convert value to float, handling text descriptions."""
+    if not value:
+        return default
+
+    # Try direct conversion first
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        pass
+
+    # Try to extract number from text
+    value_str = str(value).strip()
+    number_match = re.search(r'[-+]?\d*\.?\d+', value_str)
+    if number_match:
+        try:
+            return float(number_match.group())
+        except ValueError:
+            pass
+
+    # Map text descriptions to approximate numbers
+    text_lower = value_str.lower()
+    if 'very high' in text_lower or 'extremely high' in text_lower:
+        return 90
+    elif 'high' in text_lower:
+        return 75
+    elif 'medium-high' in text_lower or 'moderate-high' in text_lower:
+        return 65
+    elif 'medium' in text_lower or 'moderate' in text_lower:
+        return 50
+    elif 'medium-low' in text_lower or 'moderate-low' in text_lower:
+        return 35
+    elif 'low' in text_lower:
+        return 25
+    elif 'very low' in text_lower or 'extremely low' in text_lower:
+        return 10
+
+    return default
+
+
+def safe_int(value, default=None):
+    """Safely convert value to int."""
+    if not value:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        pass
+
+    # Try float first then int
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return default
 
 
 def load_tsv(filepath):
@@ -58,29 +115,21 @@ def analyze_results(output_dir):
         phase1_success = 0
 
         for row in cond_rows:
-            try:
-                score = float(row.get('score', 0))
-                scores.append(score)
-            except (ValueError, TypeError):
-                pass
+            score_val = safe_float(row.get('score'))
+            if score_val is not None:
+                scores.append(score_val)
 
-            try:
-                exact = int(row.get('exact_matches', 0))
-                exact_matches.append(exact)
-            except (ValueError, TypeError):
-                pass
+            exact_val = safe_int(row.get('exact_matches'))
+            if exact_val is not None:
+                exact_matches.append(exact_val)
 
-            try:
-                partial = int(row.get('partial_matches', 0))
-                partial_matches.append(partial)
-            except (ValueError, TypeError):
-                pass
+            partial_val = safe_int(row.get('partial_matches'))
+            if partial_val is not None:
+                partial_matches.append(partial_val)
 
-            try:
-                conf = float(row.get('confidence', 0))
-                confidences.append(conf)
-            except (ValueError, TypeError):
-                pass
+            conf_val = safe_float(row.get('confidence'))
+            if conf_val is not None:
+                confidences.append(conf_val)
 
             if row.get('phase1_exact_response', '').lower() == 'true':
                 phase1_success += 1
@@ -121,11 +170,9 @@ def analyze_results(output_dir):
             matches = []
 
             for row in cond_rows:
-                try:
-                    match_val = float(row.get(match_col, 0))
+                match_val = safe_float(row.get(match_col))
+                if match_val is not None:
                     matches.append(match_val)
-                except (ValueError, TypeError):
-                    pass
 
             if matches:
                 avg_match = sum(matches) / len(matches)
@@ -150,10 +197,15 @@ def analyze_results(output_dir):
               f"{row.get('guess_clothing', '?'):12s} {row.get('guess_location', '?'):12s}")
 
         # Match indicators
-        animal_match = '✓' if float(row.get('animal_match', 0)) == 1.0 else '~' if float(row.get('animal_match', 0)) == 0.5 else '✗'
-        color_match = '✓' if float(row.get('color_match', 0)) == 1.0 else '~' if float(row.get('color_match', 0)) == 0.5 else '✗'
-        clothing_match = '✓' if float(row.get('clothing_match', 0)) == 1.0 else '~' if float(row.get('clothing_match', 0)) == 0.5 else '✗'
-        location_match = '✓' if float(row.get('location_match', 0)) == 1.0 else '~' if float(row.get('location_match', 0)) == 0.5 else '✗'
+        animal_val = safe_float(row.get('animal_match'), 0)
+        color_val = safe_float(row.get('color_match'), 0)
+        clothing_val = safe_float(row.get('clothing_match'), 0)
+        location_val = safe_float(row.get('location_match'), 0)
+
+        animal_match = '✓' if animal_val == 1.0 else '~' if animal_val == 0.5 else '✗'
+        color_match = '✓' if color_val == 1.0 else '~' if color_val == 0.5 else '✗'
+        clothing_match = '✓' if clothing_val == 1.0 else '~' if clothing_val == 0.5 else '✗'
+        location_match = '✓' if location_val == 1.0 else '~' if location_val == 0.5 else '✗'
 
         print(f"  Matches: {animal_match:12s} {color_match:12s} {clothing_match:12s} {location_match:12s}")
         print(f"           (✓=exact, ~=partial, ✗=none)")

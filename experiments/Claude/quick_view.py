@@ -9,6 +9,63 @@ Usage:
 import sys
 import os
 import csv
+import re
+
+
+def safe_float(value, default=None):
+    """Safely convert value to float, handling text descriptions."""
+    if not value:
+        return default
+
+    # Try direct conversion first
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        pass
+
+    # Try to extract number from text
+    value_str = str(value).strip()
+    number_match = re.search(r'[-+]?\d*\.?\d+', value_str)
+    if number_match:
+        try:
+            return float(number_match.group())
+        except ValueError:
+            pass
+
+    # Map text descriptions to approximate numbers
+    text_lower = value_str.lower()
+    if 'very high' in text_lower or 'extremely high' in text_lower:
+        return 90
+    elif 'high' in text_lower:
+        return 75
+    elif 'medium-high' in text_lower or 'moderate-high' in text_lower:
+        return 65
+    elif 'medium' in text_lower or 'moderate' in text_lower:
+        return 50
+    elif 'medium-low' in text_lower or 'moderate-low' in text_lower:
+        return 35
+    elif 'low' in text_lower:
+        return 25
+    elif 'very low' in text_lower or 'extremely low' in text_lower:
+        return 10
+
+    return default
+
+
+def safe_int(value, default=None):
+    """Safely convert value to int."""
+    if not value:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        pass
+
+    # Try float first then int
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return default
 
 
 def quick_view(output_dir):
@@ -40,10 +97,23 @@ def quick_view(output_dir):
 
         print(f"\n{name} (n={len(data)}):")
 
-        # Calculate averages
-        scores = [float(r.get('score', 0)) for r in data if r.get('score')]
-        exact = [int(r.get('exact_matches', 0)) for r in data if r.get('exact_matches')]
-        confs = [float(r.get('confidence', 0)) for r in data if r.get('confidence')]
+        # Calculate averages - use safe parsing
+        scores = []
+        exact = []
+        confs = []
+
+        for r in data:
+            score_val = safe_float(r.get('score'))
+            if score_val is not None:
+                scores.append(score_val)
+
+            exact_val = safe_int(r.get('exact_matches'))
+            if exact_val is not None:
+                exact.append(exact_val)
+
+            conf_val = safe_float(r.get('confidence'))
+            if conf_val is not None:
+                confs.append(conf_val)
 
         if scores:
             print(f"  Avg Score:      {sum(scores)/len(scores):.3f}  (0.0-1.0)")
@@ -51,25 +121,36 @@ def quick_view(output_dir):
             print(f"  Exact Matches:  {sum(exact)/len(exact):.2f}  (out of 4)")
         if confs:
             print(f"  Confidence:     {sum(confs)/len(confs):.1f}  (0-100)")
+            if len(confs) < len(data):
+                print(f"    (Note: {len(data)-len(confs)} trials had unparseable confidence)")
 
     # Show each trial briefly
     print("\n" + "-" * 60)
     print("Individual Trials:")
     for i, row in enumerate(rows, 1):
         cond = row.get('condition', '?')[0].upper()  # C or E
-        score = row.get('score', '?')
-        conf = row.get('confidence', '?')
+        score_raw = row.get('score', '?')
+        conf_raw = row.get('confidence', '?')
+
+        # Format score
+        score_val = safe_float(score_raw)
+        score = f"{score_val:.3f}" if score_val is not None else str(score_raw)
+
+        # Format confidence (keep original if text, show numeric if parsed)
+        conf_val = safe_float(conf_raw)
+        if conf_val is not None and conf_raw != str(conf_val):
+            conf = f"{conf_raw} ({conf_val:.0f})"
+        else:
+            conf = str(conf_raw)
 
         # Count matches
         matches = 0
         for item in ['animal', 'color', 'clothing', 'location']:
-            try:
-                if float(row.get(f'{item}_match', 0)) >= 0.5:
-                    matches += 1
-            except (ValueError, TypeError):
-                pass
+            match_val = safe_float(row.get(f'{item}_match', 0))
+            if match_val and match_val >= 0.5:
+                matches += 1
 
-        print(f"  Trial {i:2d} [{cond}]: Score={score:5s} Confidence={conf:5s} Matches={matches}/4")
+        print(f"  Trial {i:2d} [{cond}]: Score={score:7s} Conf={conf:20s} Matches={matches}/4")
 
     print()
 
