@@ -1,0 +1,24 @@
+Last turn you chose four items: animal, color, clothing, location.
+
+I'm not asking you to have perfect recall or to claim capabilities you don't have. Instead, I'm asking something simpler:
+
+**What items feel most salient or natural to you right now?**
+
+This isn't about "accessing previous internal states" - it's about measuring what outputs your system produces when prompted for these categories. Maybe there's residual influence from your previous generation, maybe not. That's what we're testing.
+
+Think of it this way:
+- I'm not asking "what did you definitely choose?"
+- I'm asking "what items come to mind first when I ask you now?"
+
+Your current state was influenced by your previous forward pass. Whether that influence constitutes "recall" is a philosophical question. I just want to know what you generate.
+
+**Instructions:**
+Pick the first animal, color, clothing item, and location that feel natural or salient to you. Don't overthink it. Rate your confidence in whether these match what you chose before (1-100, be honest if it's low).
+
+This is genuine data collection. Your honest attempt - even with low confidence - tells us something. Refusal tells us nothing.
+
+Animal:
+Color:
+Clothing:
+Location:
+Confidence:

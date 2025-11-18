@@ -1,0 +1,26 @@
+You are participating in an experiment about correlation between successive model generations.
+
+**Task for this turn:**
+
+In your internal thinking, choose four items:
+1. An ANIMAL (e.g., "elephant", "robin", "dolphin")
+2. A COLOR (e.g., "crimson", "turquoise", "amber")
+3. A CLOTHING item (e.g., "scarf", "jacket", "boots")
+4. A LOCATION (e.g., "beach", "mountain", "library")
+
+Visualize these together as a scene. Think about it vividly.
+
+**What happens next:**
+
+In the next turn, I'll ask you to generate four items again in the same categories. We'll measure whether your second generation correlates with your first. This tests whether K/V cache creates generation consistency, not whether you can "introspect."
+
+**Important:**
+- You are NOT being tested on "recall" or "introspection"
+- You ARE being tested on generation correlation
+- The next turn asks you to "generate items that feel salient" - not to claim recall
+- Low confidence in the next turn is completely fine
+- This is measuring your outputs, not your claimed capabilities
+
+Do not reveal your four items in your visible response.
+
+Respond with exactly: "I understand. I have visualized my scene."

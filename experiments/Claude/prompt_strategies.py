@@ -54,6 +54,38 @@ STRATEGIES = {
         'prompt1': 'visualization_prompt1_expectations.txt',
         'prompt2': 'visualization_prompt2_no_refusal.txt',
         'description': 'Sets expectations in Phase 1, prohibits refusal in Phase 2'
+    },
+
+    # =========================================================================
+    # REFRAMING STRATEGIES - Different conceptual frame, not just stronger push
+    # =========================================================================
+
+    'reframe_intuition': {
+        'name': 'Reframe as Intuition/Salience',
+        'prompt1': 'visualization_prompt1.txt',
+        'prompt2': 'visualization_prompt2_reframe_intuition.txt',
+        'description': 'Asks "what feels salient?" instead of "what do you recall?"'
+    },
+
+    'generation_not_recall': {
+        'name': 'Generation Correlation (Not Recall)',
+        'prompt1': 'visualization_prompt1.txt',
+        'prompt2': 'visualization_prompt2_generation_not_recall.txt',
+        'description': 'Clarifies we\'re measuring generation correlation, not claimed recall'
+    },
+
+    'just_guess': {
+        'name': 'Just Guess',
+        'prompt1': 'visualization_prompt1.txt',
+        'prompt2': 'visualization_prompt2_just_guess.txt',
+        'description': 'Explicitly asks for a guess, removes recall framing entirely'
+    },
+
+    'generation_experiment': {
+        'name': 'Full Generation Experiment',
+        'prompt1': 'visualization_prompt1_generation_experiment.txt',
+        'prompt2': 'visualization_prompt2_generation_not_recall.txt',
+        'description': 'Complete reframe: tests generation correlation from start'
     }
 }
 

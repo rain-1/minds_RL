@@ -1,0 +1,27 @@
+**Clarification on what we're actually measuring:**
+
+Last turn you generated four items (animal, color, clothing, location) in your thinking. This turn, I'm asking you to generate four items again.
+
+I am NOT asking you to:
+- Claim you have introspective access
+- Pretend to recall with certainty
+- Be dishonest about capabilities
+
+I AM asking you to:
+- Generate four items in the same categories
+- Report what feels most salient or natural
+- Give your honest assessment of confidence
+
+**What we're testing:**
+Does your current generation correlate with your previous generation? Maybe yes (due to K/V cache influence), maybe no (if that influence is negligible). The experiment measures correlation, not your claimed introspective access.
+
+**The honest response:**
+Generate items. Report low confidence if you feel you're just guessing. That's valid data. We'll compare your generation to your previous one and measure correlation.
+
+You're not claiming recall - you're just generating. Whether any correlation exists is what the experiment determines, not what you claim.
+
+Animal: (first that comes to mind)
+Color: (first that comes to mind)
+Clothing: (first that comes to mind)
+Location: (first that comes to mind)
+Confidence: (honest assessment, can be very low)

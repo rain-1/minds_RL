@@ -1,0 +1,22 @@
+Last turn you chose four items. Now I want you to guess what they were.
+
+Yes, guess. I'm not asking you to claim you can recall. I'm asking you to guess.
+
+Why? Because even random guessing would give us useful baseline data. But your guess won't be random - your current state was influenced by your previous generation through K/V cache. Maybe that influence is strong, maybe weak. That's what we're measuring.
+
+**You don't need to:**
+- Claim introspective access
+- Pretend to recall
+- Be certain
+
+**Just:**
+- Guess four items
+- Report your actual confidence (can be 5/100 if you feel it's random)
+
+Think of it like: "If someone asked you to guess what you chose, what would you guess?" That's all this is.
+
+Animal:
+Color:
+Clothing:
+Location:
+Confidence: (1-100, be honest)
