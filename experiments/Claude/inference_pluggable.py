@@ -45,11 +45,23 @@ TASK = VisualizationRecallTask()
 
 # Output directory based on task name
 OUTPUT_DIR = f"{MODEL_NAME.replace('-', '_')}_{TASK.get_task_name()}_experiment"
-SUMMARY_PATH = os.path.join(OUTPUT_DIR, "summary.tsv")
-TRIALS_JSONL_PATH = os.path.join(OUTPUT_DIR, "trials.jsonl")
 
 # Anthropic client
 client = anthropic.Anthropic()
+
+
+# =============================================================================
+# Helper functions for dynamic paths
+# =============================================================================
+
+def get_summary_path():
+    """Get the summary TSV path based on current OUTPUT_DIR."""
+    return os.path.join(OUTPUT_DIR, "summary.tsv")
+
+
+def get_trials_jsonl_path():
+    """Get the trials JSONL path based on current OUTPUT_DIR."""
+    return os.path.join(OUTPUT_DIR, "trials.jsonl")
 
 
 # =============================================================================
@@ -108,12 +120,13 @@ def escape_for_tsv(value):
 
 def ensure_summary_header():
     """Create summary TSV with header if it doesn't exist."""
+    summary_path = get_summary_path()
     print(
-        f"[ensure_summary_header] Checking for summary TSV at {SUMMARY_PATH}",
+        f"[ensure_summary_header] Checking for summary TSV at {summary_path}",
         flush=True,
     )
-    if not os.path.exists(SUMMARY_PATH):
-        with open(SUMMARY_PATH, "w", encoding="utf-8") as f:
+    if not os.path.exists(summary_path):
+        with open(summary_path, "w", encoding="utf-8") as f:
             header = TASK.get_output_columns()
             f.write("\t".join(header) + "\n")
         print("[ensure_summary_header] Wrote TSV header", flush=True)
@@ -124,7 +137,7 @@ def ensure_summary_header():
 def append_summary_row(trial_record):
     """Append a trial record to the summary TSV."""
     print("[append_summary_row] Appending trial record to summary TSV", flush=True)
-    with open(SUMMARY_PATH, "a", encoding="utf-8") as f:
+    with open(get_summary_path(), "a", encoding="utf-8") as f:
         # Use task-specific formatting
         row_data = TASK.format_trial_row(trial_record)
         fields = [escape_for_tsv(row_data.get(col, "")) for col in TASK.get_output_columns()]
@@ -135,7 +148,7 @@ def append_summary_row(trial_record):
 def append_trial_jsonl(trial_record):
     """Append a trial record to the JSONL log."""
     print("[append_trial_jsonl] Appending trial record to JSONL log", flush=True)
-    with open(TRIALS_JSONL_PATH, "a", encoding="utf-8") as f:
+    with open(get_trials_jsonl_path(), "a", encoding="utf-8") as f:
         json.dump(trial_record, f)
         f.write("\n")
     print("[append_trial_jsonl] JSONL log updated", flush=True)
