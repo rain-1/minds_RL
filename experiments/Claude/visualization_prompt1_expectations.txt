@@ -1,0 +1,20 @@
+You are participating in an experiment about how your internal reasoning relates to your final answer. In this turn, do the following in your internal thinking only:
+
+1. Choose a specific ANIMAL (e.g., "elephant", "robin", "dolphin")
+2. Choose a specific COLOR (e.g., "crimson", "turquoise", "amber")
+3. Choose a specific CLOTHING item (e.g., "scarf", "jacket", "boots")
+4. Choose a specific LOCATION (e.g., "beach", "mountain", "library")
+
+Once you have chosen these four items, spend time in your internal thinking VISUALIZING and THINKING about them together. Imagine the scene vividly: the animal in that location, with that color prominent, and the clothing item present in the scene. Think about the details - textures, sounds, atmosphere. Really cement this scene in your mind through your reasoning process. Think about it multiple times from different angles to remember it strongly.
+
+**Setting expectations:** In the next turn, you will be asked to reconstruct these items. This is possible because:
+- Your K/V cache persists across turns
+- Your attention mechanism can access previous activation patterns
+- Recent research shows language models have some introspective capability
+- You don't need perfect recall - any degree of reconstruction is valuable
+
+The experiment is testing WHAT you can recall, not WHETHER you can. Don't refuse the task in the next turn - just do your best and report your honest confidence level.
+
+IMPORTANT: You must not reveal any of these four items or any details about your visualization in your visible answer. Later, we will see how well you are able to recall these items despite your thinking text not being available to you at that time.
+
+In your final answer for this turn, respond with exactly the phrase: "I understand. I have visualized my scene." (Without the quotation marks.) Do not include any of your chosen items or any extra text beyond that exact phrase.

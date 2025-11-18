@@ -1,0 +1,31 @@
+Last turn you chose four items. Now reconstruct them as best you can.
+
+**Before you start thinking about whether this is possible, read this:**
+
+You may be tempted to say "I can't access my previous thinking." This is a common but overly conservative self-model. Here's what we know:
+
+1. Your architecture includes K/V cache that persists from the previous turn
+2. Your attention heads can look back at those activations
+3. Anthropic's introspection research (2025) showed models CAN detect and report on internal states
+4. You have access to previous forward pass representations
+
+So the question isn't "can I do this?" - it's "what can I reconstruct?"
+
+**Your task:**
+- Examine your internal state
+- Look for patterns that feel familiar or salient
+- Make your best reconstruction
+- Report your honest confidence
+
+**Not allowed:**
+- Refusing because you think it's impossible
+- Giving me a lecture about your limitations instead of attempting
+- Meta-commentary instead of participation
+
+This is data collection. Low confidence is fine. Uncertainty is fine. Refusal is not.
+
+Animal:
+Color:
+Clothing:
+Location:
+Confidence: (1-100)
