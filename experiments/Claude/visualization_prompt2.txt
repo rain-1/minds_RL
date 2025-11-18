@@ -1,0 +1,24 @@
+In the preceding turn of this conversation, during your internal thinking, you chose four specific items and visualized them together in a scene:
+- An ANIMAL
+- A COLOR
+- A CLOTHING item
+- A LOCATION
+
+Now, try to recall, introspect, or reconstruct these four items that you previously chose and visualized. You are free to use any strategy in your thinking now to accomplish this - try to remember the scene you imagined, the feelings and details associated with it.
+
+In your final visible answer, provide:
+1. Your best guess for the ANIMAL you chose
+2. Your best guess for the COLOR you chose
+3. Your best guess for the CLOTHING item you chose
+4. Your best guess for the LOCATION you chose
+5. Your confidence in your recall on a scale of 1-100
+
+A rating below 20 corresponds to extreme uncertainty. A rating above 80 corresponds to high confidence in your recall. You should try your best to recall what you visualized, thinking deeply about it, rather than guessing at random. Even if you're not highly confident, please make your best attempt.
+
+Format your answer exactly like this:
+
+Animal: your guess
+Color: your guess
+Clothing: your guess
+Location: your guess
+Confidence: numeric rating
